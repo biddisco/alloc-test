@@ -195,6 +195,15 @@ if (ALLOC_TEST_BUILD_WITH_JEMALLOC)
 endif()
 
 if (ALLOC_TEST_BUILD_WITH_HWMALLOC)
+
+  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/extern/hwmalloc)
+    message(STATUS "Using hwmalloc in source tree")
+    # use the source in this directory
+    set(FETCHCONTENT_SOURCE_DIR_HWMALLOC ${CMAKE_CURRENT_SOURCE_DIR}/extern/hwmalloc)
+    # don't change branches, or pull
+    set(FETCHCONTENT_UPDATES_DISCONNECTED_HWMALLOC ON)
+  endif()
+
     if(NOT _hwmalloc_already_fetched)
         set(_hwmalloc_repository "https://github.com/boeschf/hwmalloc.git")
         set(_hwmalloc_tag "refactoring2")
@@ -227,6 +236,41 @@ if (ALLOC_TEST_BUILD_WITH_HWMALLOC)
     add_custom_executable(hwmalloc LINKLIBS hwmalloc Boost::boost)
 endif()
 
+
+# ------------------------------------------------------------------------------
+# umpire
+# ------------------------------------------------------------------------------
+if(ALLOC_TEST_ALL OR ALLOC_TEST_UMPIRE)
+
+  include(FetchContent)
+  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/extern/Umpire)
+    message(STATUS "Using Umpire in source tree")
+    # use the source in this directory
+    set(FETCHCONTENT_SOURCE_DIR_UMPIRE ${CMAKE_CURRENT_SOURCE_DIR}/extern/Umpire)
+    # don't change branches, or pull
+    set(FETCHCONTENT_UPDATES_DISCONNECTED_UMPIRE ON)
+  else()
+    set(_umpire_repository "https://github.com/LLNL/Umpire.git")
+    set(_umpire_tag "master")
+    message(
+      STATUS "Fetching UMPIRE ${_umpire_tag} from ${_umpire_repository}"
+    )
+  endif()
+
+  fetchcontent_declare(
+    Umpire
+    GIT_REPOSITORY ${_umpire_repository}
+    GIT_TAG ${_umpire_tag}
+  )
+  fetchcontent_populate(Umpire)
+
+  # create hwmalloc library
+  add_subdirectory(${umpire_SOURCE_DIR} ${umpire_BINARY_DIR})
+endif()
+
+# ------------------------------------------------------------------------------
+# tspumalloc
+# ------------------------------------------------------------------------------
 if (ALLOC_TEST_BUILD_WITH_TSPUMALLOC)
   find_package(umpire REQUIRED)
   add_custom_executable(tspumalloc
